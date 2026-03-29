@@ -1,0 +1,2 @@
+# Baixe uma imagem de fundo de sua preferência e salve na mesma pasta com o nome "background.jpg" (ou outro nome, se preferir, e me avise para ajustar).
+# O restante das alterações será feito no CSS e HTML.

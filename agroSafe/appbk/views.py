@@ -5,18 +5,21 @@ from .models import Pessoa
 import json
 
 @csrf_exempt
+
 def cadastrar_pessoa(request):
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body)
 			nome = data.get('nome')
 			cpf = data.get('cpf')
-			if not nome or not cpf:
-				return JsonResponse({'erro': 'Nome e CPF são obrigatórios.'}, status=400)
+			senha = data.get('senha')
+			if not nome or not cpf or not senha:
+				return JsonResponse({'erro': 'Nome, CPF e senha são obrigatórios.'}, status=400)
 			if Pessoa.objects.filter(cpf=cpf).exists():
 				return JsonResponse({'erro': 'CPF já cadastrado.'}, status=400)
+			# Aqui você pode adicionar lógica para salvar a senha, se desejar
 			pessoa = Pessoa.objects.create(nome=nome, cpf=cpf)
-			return JsonResponse({'id': pessoa.id, 'nome': pessoa.nome, 'cpf': pessoa.cpf}, status=201)
+			return JsonResponse({'mensagem': 'Usuário cadastrado com sucesso!', 'id': pessoa.id, 'nome': pessoa.nome, 'cpf': pessoa.cpf}, status=201)
 		except Exception as e:
 			return JsonResponse({'erro': str(e)}, status=400)
 	return JsonResponse({'erro': 'Método não permitido.'}, status=405)
