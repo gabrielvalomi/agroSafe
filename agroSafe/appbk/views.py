@@ -86,6 +86,6 @@ def cadastrar_visitante(request):
 				horario_saida=horario_saida
 			)
 			return JsonResponse({'mensagem': 'Visitante cadastrado com sucesso!', 'id': visitante.id}, status=201)
-		except Exception as e:
+		except (TypeError, ValueError) as e:
 			return JsonResponse({'erro': str(e)}, status=400)
 	return JsonResponse({'erro': 'Método não permitido.'}, status=405)
