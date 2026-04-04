@@ -26,6 +26,6 @@ def home(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('appbk.urls')),
+    path('appbk/', include('appbk.urls')),
     path('', home),
 ]

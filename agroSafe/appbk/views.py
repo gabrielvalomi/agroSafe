@@ -2,6 +2,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Pessoa, Visitante
+from django.contrib.auth.hashers import make_password
 import json
 
 @csrf_exempt
@@ -17,8 +18,13 @@ def cadastrar_pessoa(request):
 				return JsonResponse({'erro': 'Nome, CPF e senha são obrigatórios.'}, status=400)
 			if Pessoa.objects.filter(cpf=cpf).exists():
 				return JsonResponse({'erro': 'CPF já cadastrado.'}, status=400)
-			# Aqui você pode adicionar lógica para salvar a senha, se desejar
-			pessoa = Pessoa.objects.create(nome=nome, cpf=cpf)
+			senha_hash = make_password(senha)
+
+			pessoa = Pessoa.objects.create(
+				nome=nome,
+				cpf=cpf,
+				senha=senha_hash
+			)
 			return JsonResponse({'mensagem': 'Usuário cadastrado com sucesso!', 'id': pessoa.id, 'nome': pessoa.nome, 'cpf': pessoa.cpf}, status=201)
 		except Exception as e:
 			return JsonResponse({'erro': str(e)}, status=400)
