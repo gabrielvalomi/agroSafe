@@ -55,7 +55,8 @@ ROOT_URLCONF = 'agroSafe.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        # Keep compatibility with the current project folder layout.
+        'DIRS': [BASE_DIR.parent / 'template', BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
