@@ -18,14 +18,29 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
-from django.http import HttpResponse
 from django.shortcuts import render
+from django.shortcuts import redirect
 
 def home(request):
-    return render(request, 'main/index.html')
+    return render(request, 'main/login.html')
+
+
+def cadastro_page(request):
+    return render(request, 'main/cadastro.html')
+
+
+def painel_page(request):
+    pessoa_id = request.session.get('pessoa_id')
+    if not pessoa_id:
+        return redirect('/')
+
+    nome = request.session.get('pessoa_nome', 'Usuário')
+    return render(request, 'main/painel.html', {'nome': nome})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('appbk/', include('appbk.urls')),
     path('', home),
+    path('cadastro/', cadastro_page),
+    path('painel/', painel_page),
 ]

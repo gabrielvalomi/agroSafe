@@ -2,7 +2,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Pessoa, Visitante
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 import json
 from django.utils import timezone
 from datetime import timedelta
@@ -30,6 +30,49 @@ def cadastrar_pessoa(request):
 			return JsonResponse({'mensagem': 'Usuário cadastrado com sucesso!', 'id': pessoa.id, 'nome': pessoa.nome, 'cpf': pessoa.cpf}, status=201)
 		except Exception as e:
 			return JsonResponse({'erro': str(e)}, status=400)
+	return JsonResponse({'erro': 'Método não permitido.'}, status=405)
+
+
+# login da pessoa
+@csrf_exempt
+def login_pessoa(request):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body)
+			cpf = data.get('cpf')
+			senha = data.get('senha')
+
+			if not cpf or not senha:
+				return JsonResponse({'erro': 'CPF e senha são obrigatórios.'}, status=400)
+
+			pessoa = Pessoa.objects.filter(cpf=cpf).first()
+			if not pessoa:
+				return JsonResponse({'erro': 'CPF ou senha inválidos.'}, status=401)
+
+			if not check_password(senha, pessoa.senha):
+				return JsonResponse({'erro': 'CPF ou senha inválidos.'}, status=401)
+
+			request.session['pessoa_id'] = pessoa.id
+			request.session['pessoa_nome'] = pessoa.nome
+
+			return JsonResponse(
+				{
+					'mensagem': 'Login realizado com sucesso!',
+					'id': pessoa.id,
+					'nome': pessoa.nome,
+				},
+				status=200
+			)
+		except Exception as e:
+			return JsonResponse({'erro': str(e)}, status=400)
+	return JsonResponse({'erro': 'Método não permitido.'}, status=405)
+
+
+@csrf_exempt
+def logout_pessoa(request):
+	if request.method in ['POST', 'GET']:
+		request.session.flush()
+		return JsonResponse({'mensagem': 'Logout realizado com sucesso.'}, status=200)
 	return JsonResponse({'erro': 'Método não permitido.'}, status=405)
 
 #Cadastro de visitantes
