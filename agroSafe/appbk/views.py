@@ -2,11 +2,13 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Pessoa, Visitante
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 import json
+from django.utils import timezone
+from datetime import timedelta
 
+# cadastro da empresa, apenas para fins de teste.
 @csrf_exempt
-
 def cadastrar_pessoa(request):
 	if request.method == 'POST':
 		try:
@@ -30,45 +32,47 @@ def cadastrar_pessoa(request):
 			return JsonResponse({'erro': str(e)}, status=400)
 	return JsonResponse({'erro': 'Método não permitido.'}, status=405)
 
-# Create your views here.
 
-# Lista nomes e CPFs das últimas 10 visitas
+# login da pessoa
 @csrf_exempt
-def listar_ultimas_visitas(request):
-	if request.method == 'GET':
-		visitas = Visitante.objects.order_by('-horario_saida')[:10]
-		dados = [
-			{'nome': v.nome, 'cpf': v.cpf, 'horario_saida': v.horario_saida}
-			for v in visitas
-		]
-		return JsonResponse({'ultimas_visitas': dados}, status=200)
-	return JsonResponse({'erro': 'Método não permitido.'}, status=405)
-
-from django.utils import timezone
-from datetime import timedelta
-
-# Verifica se o visitante está autorizado a entrar (48h desde a última visita)
-@csrf_exempt
-def verificar_autorizacao_visitante(request):
+def login_pessoa(request):
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body)
 			cpf = data.get('cpf')
-			if not cpf:
-				return JsonResponse({'erro': 'CPF é obrigatório.'}, status=400)
-			# Busca a última visita desse CPF
-			ultima_visita = Visitante.objects.filter(cpf=cpf).order_by('-horario_saida').first()
-			if not ultima_visita:
-				return JsonResponse({'autorizado': True, 'mensagem': 'Primeira visita, entrada autorizada.'})
-			agora = timezone.now()
-			diff = agora - ultima_visita.horario_saida
-			if diff >= timedelta(hours=48):
-				return JsonResponse({'autorizado': True, 'mensagem': 'Entrada autorizada.'})
-			else:
-				horas_restantes = 48 - (diff.total_seconds() // 3600)
-				return JsonResponse({'autorizado': False, 'mensagem': f'Entrada não autorizada. Faltam {int(horas_restantes)} horas para nova entrada.'})
+			senha = data.get('senha')
+
+			if not cpf or not senha:
+				return JsonResponse({'erro': 'CPF e senha são obrigatórios.'}, status=400)
+
+			pessoa = Pessoa.objects.filter(cpf=cpf).first()
+			if not pessoa:
+				return JsonResponse({'erro': 'CPF ou senha inválidos.'}, status=401)
+
+			if not check_password(senha, pessoa.senha):
+				return JsonResponse({'erro': 'CPF ou senha inválidos.'}, status=401)
+
+			request.session['pessoa_id'] = pessoa.id
+			request.session['pessoa_nome'] = pessoa.nome
+
+			return JsonResponse(
+				{
+					'mensagem': 'Login realizado com sucesso!',
+					'id': pessoa.id,
+					'nome': pessoa.nome,
+				},
+				status=200
+			)
 		except Exception as e:
 			return JsonResponse({'erro': str(e)}, status=400)
+	return JsonResponse({'erro': 'Método não permitido.'}, status=405)
+
+
+@csrf_exempt
+def logout_pessoa(request):
+	if request.method in ['POST', 'GET']:
+		request.session.flush()
+		return JsonResponse({'mensagem': 'Logout realizado com sucesso.'}, status=200)
 	return JsonResponse({'erro': 'Método não permitido.'}, status=405)
 
 #Cadastro de visitantes
@@ -95,3 +99,43 @@ def cadastrar_visitante(request):
 		except (TypeError, ValueError) as e:
 			return JsonResponse({'erro': str(e)}, status=400)
 	return JsonResponse({'erro': 'Método não permitido.'}, status=405)
+
+# Verifica se o visitante está autorizado a entrar (48h desde a última visita)
+@csrf_exempt
+def verificar_autorizacao_visitante(request):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body)
+			cpf = data.get('cpf')
+			if not cpf:
+				return JsonResponse({'erro': 'CPF é obrigatório.'}, status=400)
+			# Busca a última visita desse CPF
+			ultima_visita = Visitante.objects.filter(cpf=cpf).order_by('-horario_saida').first()
+			if not ultima_visita:
+				return JsonResponse({'autorizado': True, 'mensagem': 'Primeira visita, entrada autorizada.'})
+			agora = timezone.now()
+			diff = agora - ultima_visita.horario_saida
+			if diff >= timedelta(hours=48):
+				return JsonResponse({'autorizado': True, 'mensagem': 'Entrada autorizada.'})
+			else:
+				horas_restantes = 48 - (diff.total_seconds() // 3600)
+				return JsonResponse({'autorizado': False, 'mensagem': f'Entrada não autorizada. Faltam {int(horas_restantes)} horas para nova entrada.'})
+		except Exception as e:
+			return JsonResponse({'erro': str(e)}, status=400)
+	return JsonResponse({'erro': 'Método não permitido.'}, status=405)
+
+
+# Lista nomes e CPFs das últimas 10 visitas
+@csrf_exempt
+def listar_ultimas_visitas(request):
+	if request.method == 'GET':
+		visitas = Visitante.objects.order_by('-horario_saida')[:10]
+		dados = [
+			{'nome': v.nome, 'cpf': v.cpf, 'horario_saida': v.horario_saida}
+			for v in visitas
+		]
+		return JsonResponse({'ultimas_visitas': dados}, status=200)
+	return JsonResponse({'erro': 'Método não permitido.'}, status=405)
+
+
+

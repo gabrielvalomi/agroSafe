@@ -1,0 +1,34 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | AgroSafe</title>
+    <link rel="stylesheet" href="{% static 'main/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <div class="right-panel">
+            <form id="login-form" class="login-form">
+                <h2>Entrar</h2>
+                <p class="form-subtitle">Acesse sua conta no AgroSafe</p>
+
+                <label for="cpf">CPF</label>
+                <input type="text" id="cpf" name="cpf" required>
+
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" name="senha" required>
+
+                <button type="submit">Entrar</button>
+                <p id="feedback" class="feedback"></p>
+
+                <div class="login-links">
+                    <a href="/cadastro/" class="login-link">Criar conta</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="{% static 'main/script.js' %}"></script>
+</body>
+</html>
