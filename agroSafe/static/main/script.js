@@ -60,7 +60,7 @@ if (loginForm) {
                 if (data.mensagem) {
                     showFeedback('Login realizado com sucesso! Redirecionando...', false);
                     setTimeout(() => {
-                        window.location.href = '/painel/';
+                        window.location.href = '/porteiro/';
                     }, 700);
                     return;
                 }

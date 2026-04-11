@@ -1,7 +1,4 @@
-"""
-Comparação de rosto com OpenCV: detecção Haar + histograma da região da face.
-Não usa FastAPI nem serviços externos; adequado para protótipo e testes de fluxo.
-"""
+
 from __future__ import annotations
 
 import os
