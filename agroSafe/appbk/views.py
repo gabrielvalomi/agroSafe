@@ -14,6 +14,9 @@ def cadastrar_granja(request):
 			data = json.loads(request.body)
 			nome = data.get('nome')
 			CNPJ = data.get('CNPJ')
+			regiao = data.get('regiao')
+			telefone = data.get('telefone')
+			email_corporativo = data.get('email_corporativo')
 			senha = data.get('senha')
 			if not nome or not CNPJ or not senha:
 				return JsonResponse({'erro': 'Nome, CNPJ e senha são obrigatórios.'}, status=400)
@@ -24,6 +27,9 @@ def cadastrar_granja(request):
 			granja = Granja.objects.create(
 				nome=nome,
 				CNPJ=CNPJ,
+				regiao=regiao,
+				telefone=telefone,
+				email_corporativo=email_corporativo,
 				senha=senha_hash
 			)
 			return JsonResponse({'mensagem': 'Granja cadastrada com sucesso!', 'id': granja.id, 'nome': granja.nome, 'CNPJ': granja.CNPJ}, status=201)

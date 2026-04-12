@@ -1,12 +1,16 @@
 from django.db import models
 
-class Granja(models.Model):
-	nome = models.CharField(max_length=100)
-	CNPJ = models.CharField(max_length=14, unique=True)
-	senha = models.CharField(max_length=128)
 
-	def __str__(self):
-		return f"{self.nome} ({self.CNPJ})"
+class Granja(models.Model):
+    nome = models.CharField(max_length=100)
+    CNPJ = models.CharField(max_length=14, unique=True)
+    regiao = models.CharField(max_length=100, null=True, blank=True)
+    telefone = models.CharField(max_length=20, null=True, blank=True)
+    email_corporativo = models.EmailField(max_length=100, null=True, blank=True)
+    senha = models.CharField(max_length=128)
+
+    def __str__(self):
+        return f"{self.nome} ({self.CNPJ})"
 
 
 # Modelo para armazenar dados de visitantes

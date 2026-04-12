@@ -5,6 +5,7 @@ from django.views.decorators.http import require_http_methods
 from .face_opencv import comparar_rosto_arquivo_referencia
 from .models import CadastroVisitantePortaria, RegistroAcessoPortaria
 
+from django.utils import timezone
 
 def _norm_nome(s: str | None) -> str:
 	return (s or '').strip()
@@ -97,7 +98,6 @@ def foto(request):
 				cadastro=c,
 				entrada_permitida=True
 			).order_by('-criado_em').first()
-			from django.utils import timezone
 			agora = timezone.now()
 			if ultimo_acesso and (agora - ultimo_acesso.criado_em).total_seconds() < 48 * 3600:
 				horas_restantes = 48 - int((agora - ultimo_acesso.criado_em).total_seconds() // 3600)
