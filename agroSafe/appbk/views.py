@@ -1,65 +1,65 @@
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Pessoa, Visitante
+from .models import Granja, Visitante
 from django.contrib.auth.hashers import make_password, check_password
 import json
 from django.utils import timezone
 from datetime import timedelta
 
-# cadastro da empresa, apenas para fins de teste.
+# cadastro da granja, apenas para fins de teste.
 @csrf_exempt
-def cadastrar_pessoa(request):
+def cadastrar_granja(request):
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body)
 			nome = data.get('nome')
-			cpf = data.get('cpf')
+			CNPJ = data.get('CNPJ')
 			senha = data.get('senha')
-			if not nome or not cpf or not senha:
-				return JsonResponse({'erro': 'Nome, CPF e senha são obrigatórios.'}, status=400)
-			if Pessoa.objects.filter(cpf=cpf).exists():
-				return JsonResponse({'erro': 'CPF já cadastrado.'}, status=400)
+			if not nome or not CNPJ or not senha:
+				return JsonResponse({'erro': 'Nome, CNPJ e senha são obrigatórios.'}, status=400)
+			if Granja.objects.filter(CNPJ=CNPJ).exists():
+				return JsonResponse({'erro': 'CNPJ já cadastrado.'}, status=400)
 			senha_hash = make_password(senha)
 
-			pessoa = Pessoa.objects.create(
+			granja = Granja.objects.create(
 				nome=nome,
-				cpf=cpf,
+				CNPJ=CNPJ,
 				senha=senha_hash
 			)
-			return JsonResponse({'mensagem': 'Usuário cadastrado com sucesso!', 'id': pessoa.id, 'nome': pessoa.nome, 'cpf': pessoa.cpf}, status=201)
+			return JsonResponse({'mensagem': 'Granja cadastrada com sucesso!', 'id': granja.id, 'nome': granja.nome, 'CNPJ': granja.CNPJ}, status=201)
 		except Exception as e:
 			return JsonResponse({'erro': str(e)}, status=400)
 	return JsonResponse({'erro': 'Método não permitido.'}, status=405)
 
 
-# login da pessoa
+# login da granja
 @csrf_exempt
-def login_pessoa(request):
+def login_granja(request):
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body)
-			cpf = data.get('cpf')
+			CNPJ = data.get('CNPJ')
 			senha = data.get('senha')
 
-			if not cpf or not senha:
-				return JsonResponse({'erro': 'CPF e senha são obrigatórios.'}, status=400)
+			if not CNPJ or not senha:
+				return JsonResponse({'erro': 'CNPJ e senha são obrigatórios.'}, status=400)
 
-			pessoa = Pessoa.objects.filter(cpf=cpf).first()
-			if not pessoa:
-				return JsonResponse({'erro': 'CPF ou senha inválidos.'}, status=401)
+			granja = Granja.objects.filter(CNPJ=CNPJ).first()
+			if not granja:
+				return JsonResponse({'erro': 'CNPJ ou senha inválidos.'}, status=401)
 
-			if not check_password(senha, pessoa.senha):
-				return JsonResponse({'erro': 'CPF ou senha inválidos.'}, status=401)
+			if not check_password(senha, granja.senha):
+				return JsonResponse({'erro': 'CNPJ ou senha inválidos.'}, status=401)
 
-			request.session['pessoa_id'] = pessoa.id
-			request.session['pessoa_nome'] = pessoa.nome
+			request.session['granja_id'] = granja.id
+			request.session['granja_nome'] = granja.nome
 
 			return JsonResponse(
 				{
 					'mensagem': 'Login realizado com sucesso!',
-					'id': pessoa.id,
-					'nome': pessoa.nome,
+					'id': granja.id,
+					'nome': granja.nome,
 				},
 				status=200
 			)
@@ -69,7 +69,7 @@ def login_pessoa(request):
 
 
 @csrf_exempt
-def logout_pessoa(request):
+def logout_granja(request):
 	if request.method in ['POST', 'GET']:
 		request.session.flush()
 		return JsonResponse({'mensagem': 'Logout realizado com sucesso.'}, status=200)
