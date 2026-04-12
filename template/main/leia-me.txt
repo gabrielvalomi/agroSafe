@@ -1,0 +1,11 @@
+Leia-me: 
+
+Esta pasta contém os templates HTML principais do sistema AgroSafe:
+- login.html: Tela de login do usuário
+- cadastro.html: Tela de cadastro de novo usuário
+- painel.html: Painel principal após login
+- cadastrovisitante.html: Cadastro de visitantes
+
+Os arquivos estão prontos para serem usados e customizados conforme a necessidade do sistema.
+
+Se precisar de mais templates, basta pedir!
