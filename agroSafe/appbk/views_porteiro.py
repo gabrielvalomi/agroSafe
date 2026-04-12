@@ -92,6 +92,35 @@ def foto(request):
 		ref_path = c.foto.path
 		ok, score, msg = comparar_rosto_arquivo_referencia(ref_path, f)
 		if ok:
+			# Verifica se a última entrada permitida foi há pelo menos 48h
+			ultimo_acesso = RegistroAcessoPortaria.objects.filter(
+				cadastro=c,
+				entrada_permitida=True
+			).order_by('-criado_em').first()
+			from django.utils import timezone
+			agora = timezone.now()
+			if ultimo_acesso and (agora - ultimo_acesso.criado_em).total_seconds() < 48 * 3600:
+				horas_restantes = 48 - int((agora - ultimo_acesso.criado_em).total_seconds() // 3600)
+				RegistroAcessoPortaria.objects.create(
+					cadastro=c,
+					nome_informado=nome,
+					documento_informado=documento,
+					fluxo='tentativa_entrada_bloqueada_48h',
+					reconhecimento_correlacao=score,
+					reconhecimento_automatico_ok=True,
+					entrada_permitida=False,
+				)
+				_clear_porteiro_session(request)
+				return render(
+					request,
+					'porteiro/resultado.html',
+					{
+						'titulo': 'Entrada bloqueada',
+						'detalhe': f'Entrada não autorizada. Faltam {horas_restantes} horas para nova entrada.',
+						'permitida': False,
+					},
+				)
+			# Se passou das 48h, libera normalmente
 			RegistroAcessoPortaria.objects.create(
 				cadastro=c,
 				nome_informado=nome,

@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Granja
+from .models import Granja, RegistroAcessoPortaria
 from django.contrib.auth.hashers import make_password, check_password
 import json
 from django.utils import timezone
@@ -111,6 +111,4 @@ def deletar_granja(request, id):
 		granja.delete()
 		return JsonResponse({'mensagem': 'Granja deletada com sucesso.'}, status=200)
 	return JsonResponse({'erro': 'Método não permitido.'}, status=405)
-
-
 
