@@ -45,7 +45,7 @@ if (loginForm) {
     loginForm.addEventListener('submit', function (e) {
         e.preventDefault();
 
-        const cpf = document.getElementById('cpf').value.trim();
+        const cnpj = document.getElementById('cnpj').value.trim();
         const senha = document.getElementById('senha').value;
 
         fetch('/appbk/login/', {
@@ -53,7 +53,7 @@ if (loginForm) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ cpf, senha })
+            body: JSON.stringify({ cnpj, senha })
         })
             .then(response => response.json())
             .then(data => {

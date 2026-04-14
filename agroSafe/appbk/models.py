@@ -9,6 +9,9 @@ class Granja(models.Model):
     email_corporativo = models.EmailField(max_length=100, null=True, blank=True)
     senha = models.CharField(max_length=128)
 
+    class Meta:
+        db_table = 'appbk_granja'
+
     def __str__(self):
         return f"{self.nome} ({self.CNPJ})"
 
@@ -17,7 +20,7 @@ class Granja(models.Model):
 class CadastroVisitantePortaria(models.Model):
     nome = models.CharField(max_length=100)
     documento = models.CharField(max_length=64)
-    foto = models.ImageField(upload_to='portaria/visitantes/%Y/%m/')
+    foto = models.ImageField(upload_to='portaria/visitantes/%Y/%m/', null=True, blank=True)
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:

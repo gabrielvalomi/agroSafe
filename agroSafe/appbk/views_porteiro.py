@@ -35,7 +35,7 @@ def inicio(request):
 		if not nome or not documento:
 			return render(
 				request,
-				'porteiro/inicio.html',
+				'main/porteiro/inicio.html',
 				{'erro': 'Nome e documento são obrigatórios.'},
 			)
 		exists = CadastroVisitantePortaria.objects.filter(nome=nome, documento=documento).first()
@@ -48,7 +48,7 @@ def inicio(request):
 			request.session.pop('porteiro_visitante_id', None)
 			request.session['porteiro_modo'] = 'cadastro_novo'
 		return redirect('porteiro_foto')
-	return render(request, 'porteiro/inicio.html')
+	return render(request, 'main/porteiro/inicio.html')
 
 
 @require_http_methods(['GET', 'POST'])
@@ -63,10 +63,21 @@ def foto(request):
 		if not f:
 			return render(
 				request,
-				'porteiro/foto.html',
+				'main/porteiro/foto.html',
 				{'erro': 'Envie uma foto (arquivo ou captura da câmera).', 'modo': modo},
 			)
 		if modo == 'cadastro_novo':
+			if CadastroVisitantePortaria.objects.filter(nome=nome, documento=documento).exists():
+				_clear_porteiro_session(request)
+				return render(
+					request,
+					'main/porteiro/resultado.html',
+					{
+						'titulo': 'Erro',
+						'detalhe': 'Visitante já cadastrado.',
+						'permitida': False,
+					},
+				)
 			c = CadastroVisitantePortaria.objects.create(nome=nome, documento=documento, foto=f)
 			RegistroAcessoPortaria.objects.create(
 				cadastro=c,
@@ -78,7 +89,7 @@ def foto(request):
 			_clear_porteiro_session(request)
 			return render(
 				request,
-				'porteiro/resultado.html',
+				'main/porteiro/resultado.html',
 				{
 					'titulo': 'Entrada permitida',
 					'detalhe': 'Cadastro efetuado; porteiro tirou a foto (fluxo: não existia no sistema).',
@@ -113,7 +124,7 @@ def foto(request):
 				_clear_porteiro_session(request)
 				return render(
 					request,
-					'porteiro/resultado.html',
+					'main/porteiro/resultado.html',
 					{
 						'titulo': 'Entrada bloqueada',
 						'detalhe': f'Entrada não autorizada. Faltam {horas_restantes} horas para nova entrada.',
@@ -133,7 +144,7 @@ def foto(request):
 			_clear_porteiro_session(request)
 			return render(
 				request,
-				'porteiro/resultado.html',
+				'main/porteiro/resultado.html',
 				{
 					'titulo': 'Entrada permitida',
 					'detalhe': f'Foto bate com o cadastro (correlação {score:.3f}).',
@@ -147,7 +158,7 @@ def foto(request):
 		'modo': modo,
 		'threshold': getattr(settings, 'FACE_MATCH_HIST_THRESHOLD', 0.55),
 	}
-	return render(request, 'porteiro/foto.html', ctx)
+	return render(request, 'main/porteiro/foto.html', ctx)
 
 
 @require_http_methods(['GET', 'POST'])
@@ -178,7 +189,7 @@ def revisao(request):
 			_clear_porteiro_session(request)
 			return render(
 				request,
-				'porteiro/resultado.html',
+				'main/porteiro/resultado.html',
 				{
 					'titulo': 'Entrada permitida',
 					'detalhe': 'Review manual do porteiro: aprovado.',
@@ -199,7 +210,7 @@ def revisao(request):
 			_clear_porteiro_session(request)
 			return render(
 				request,
-				'porteiro/resultado.html',
+				'main/porteiro/resultado.html',
 				{
 					'titulo': 'Entrada negada',
 					'detalhe': 'Review manual do porteiro: não passou.',
@@ -208,7 +219,7 @@ def revisao(request):
 			)
 		return render(
 			request,
-			'porteiro/revisao.html',
+			'main/porteiro/revisao.html',
 			{
 				'erro': 'Escolha aprovar ou negar.',
 				'cadastro': c,
@@ -218,7 +229,7 @@ def revisao(request):
 		)
 	return render(
 		request,
-		'porteiro/revisao.html',
+		'main/porteiro/revisao.html',
 		{
 			'cadastro': c,
 			'score': request.session.get('porteiro_score'),
