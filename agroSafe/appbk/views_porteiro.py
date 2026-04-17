@@ -19,6 +19,8 @@ def _clear_porteiro_session(request):
 	for k in (
 		'porteiro_nome',
 		'porteiro_documento',
+		'porteiro_empresa',
+		'porteiro_nivel',
 		'porteiro_visitante_id',
 		'porteiro_modo',
 		'porteiro_score',
@@ -32,15 +34,19 @@ def inicio(request):
 	if request.method == 'POST':
 		nome = _norm_nome(request.POST.get('nome'))
 		documento = _norm_doc(request.POST.get('documento'))
-		if not nome or not documento:
+		empresa = _norm_doc(request.POST.get('empresa'))
+		nivel = request.POST.get('nivel')
+		if not nome or not documento or not empresa or not nivel:
 			return render(
 				request,
 				'main/porteiro/inicio.html',
-				{'erro': 'Nome e documento são obrigatórios.'},
+				{'erro': 'Todos os campos são obrigatórios.'},
 			)
 		exists = CadastroVisitantePortaria.objects.filter(nome=nome, documento=documento).first()
 		request.session['porteiro_nome'] = nome
 		request.session['porteiro_documento'] = documento
+		request.session['porteiro_empresa'] = empresa
+		request.session['porteiro_nivel'] = nivel
 		if exists:
 			request.session['porteiro_visitante_id'] = exists.id
 			request.session['porteiro_modo'] = 'verificacao'
@@ -89,7 +95,13 @@ def foto(request):
 						'threshold': getattr(settings, 'FACE_MATCH_HASH_THRESHOLD', 0.78),
 					},
 				)
-			c = CadastroVisitantePortaria.objects.create(nome=nome, documento=documento, foto_hash=foto_hash)
+			c = CadastroVisitantePortaria.objects.create(
+				nome=nome,
+				documento=documento,
+				empresa=empresa,
+				nivel=nivel,
+				foto_hash=foto_hash
+			)
 			RegistroAcessoPortaria.objects.create(
 				cadastro=c,
 				nome_informado=nome,

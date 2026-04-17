@@ -1,4 +1,19 @@
 from django.db import models
+from enum import Enum
+
+
+class NivelVisitante(Enum):
+    TRABALHADOR = 'Trabalhador'
+    PRESTADOR_SERVICO = 'Prestador_de_Serviço'
+    VISITANTE = 'Visitante'
+    
+    @classmethod
+    def choices(cls):
+        return [
+            ('trabalhador', 'Trabalhador'),
+            ('prestador_servico', 'Prestador de Serviço'),
+            ('visitante', 'Visitante'),
+        ]
 
 
 class Granja(models.Model):
@@ -20,6 +35,8 @@ class Granja(models.Model):
 class CadastroVisitantePortaria(models.Model):
     nome = models.CharField(max_length=100)
     documento = models.CharField(max_length=64)
+    empresa = models.CharField(max_length=100,)
+    nivel = models.CharField(max_length=20, choices=NivelVisitante.choices())
     foto_hash = models.CharField(max_length=64, null=True, blank=True)
     criado_em = models.DateTimeField(auto_now_add=True)
 
