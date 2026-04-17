@@ -2,7 +2,7 @@ from django.conf import settings
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .face_opencv import comparar_rosto_arquivo_referencia
+from .face_opencv import comparar_rosto_hash_referencia, gerar_hash_rosto_upload
 from .models import CadastroVisitantePortaria, RegistroAcessoPortaria
 
 from django.utils import timezone
@@ -78,7 +78,18 @@ def foto(request):
 						'permitida': False,
 					},
 				)
-			c = CadastroVisitantePortaria.objects.create(nome=nome, documento=documento, foto=f)
+			foto_hash, status = gerar_hash_rosto_upload(f)
+			if not foto_hash:
+				return render(
+					request,
+					'main/porteiro/foto.html',
+					{
+						'erro': f'Não foi possível gerar hash facial da foto: {status}.',
+						'modo': modo,
+						'threshold': getattr(settings, 'FACE_MATCH_HASH_THRESHOLD', 0.78),
+					},
+				)
+			c = CadastroVisitantePortaria.objects.create(nome=nome, documento=documento, foto_hash=foto_hash)
 			RegistroAcessoPortaria.objects.create(
 				cadastro=c,
 				nome_informado=nome,
@@ -101,8 +112,7 @@ def foto(request):
 		if not c:
 			_clear_porteiro_session(request)
 			return redirect('porteiro_inicio')
-		ref_path = c.foto.path
-		ok, score, msg = comparar_rosto_arquivo_referencia(ref_path, f)
+		ok, score, msg = comparar_rosto_hash_referencia(c.foto_hash, f)
 		if ok:
 			# Verifica se a última entrada permitida foi há pelo menos 48h
 			ultimo_acesso = RegistroAcessoPortaria.objects.filter(
@@ -156,7 +166,7 @@ def foto(request):
 		return redirect('porteiro_revisao')
 	ctx = {
 		'modo': modo,
-		'threshold': getattr(settings, 'FACE_MATCH_HIST_THRESHOLD', 0.55),
+		'threshold': getattr(settings, 'FACE_MATCH_HASH_THRESHOLD', 0.78),
 	}
 	return render(request, 'main/porteiro/foto.html', ctx)
 

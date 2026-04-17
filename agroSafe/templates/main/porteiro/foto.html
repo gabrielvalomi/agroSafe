@@ -6,14 +6,14 @@
 </head>
 <body>
 {% if modo == 'cadastro_novo' %}
-<p>Não existe nome+documento no sistema: após a foto o cadastro é concluído e a entrada é permitida (fluxo do diagrama).</p>
+<p>Não existe nome+documento no sistema: após a foto o cadastro é concluído com hash facial e a entrada é permitida (fluxo do diagrama).</p>
 {% else %}
-<p>Já existe cadastro: a foto será comparada com OpenCV ao rosto salvo.</p>
+<p>Já existe cadastro: a foto será comparada com OpenCV usando o hash facial salvo no cadastro.</p>
 {% endif %}
 {% if erro %}
 <p>{{ erro }}</p>
 {% endif %}
-<p>Limite do reconhecimento automático (histograma): correlação maior ou igual a {{ threshold }}.</p>
+<p>Limite do reconhecimento automático (hash facial): similaridade maior ou igual a {{ threshold }}.</p>
 
 <video id="v" width="640" height="480" autoplay playsinline></video>
 <canvas id="c" width="640" height="480" style="display:none"></canvas>
