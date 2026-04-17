@@ -6,10 +6,9 @@
 </head>
 <body>
 <p>A foto tirada não bateu com o cadastro no sistema (reconhecimento automático).</p>
-<p>Correlação obtida: {% if score is not None %}{{ score }}{% else %}—{% endif %} — detalhe técnica: {{ msg|default:"—" }}</p>
+<p>Similaridade obtida: {% if score is not None %}{{ score }}{% else %}—{% endif %} — detalhe técnico: {{ msg|default:"—" }}</p>
 <p>Cadastro: {{ cadastro.nome }} — documento {{ cadastro.documento }}</p>
-<p>Imagem de referência no sistema:</p>
-<p><img src="{{ cadastro.foto.url }}" alt="referência" width="240"></p>
+<p>A referência está salva como hash facial no sistema (sem arquivo de imagem).</p>
 <p>Review manual do porteiro, com os olhos.</p>
 {% if erro %}
 <p>{{ erro }}</p>

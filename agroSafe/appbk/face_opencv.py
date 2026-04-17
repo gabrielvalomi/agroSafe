@@ -30,11 +30,6 @@ def _face_from_bgr(bgr: np.ndarray) -> np.ndarray | None:
 	return _largest_face_roi(gray)
 
 
-def _read_bgr_from_path(path: str) -> np.ndarray | None:
-	img = cv2.imread(path, cv2.IMREAD_COLOR)
-	return img
-
-
 def _read_bgr_from_upload(file_obj: BinaryIO) -> np.ndarray | None:
 	raw = file_obj.read()
 	if not raw:
@@ -43,42 +38,49 @@ def _read_bgr_from_upload(file_obj: BinaryIO) -> np.ndarray | None:
 	return cv2.imdecode(arr, cv2.IMREAD_COLOR)
 
 
-def _histogram_correlation(face_a: np.ndarray, face_b: np.ndarray) -> float:
-	a = cv2.resize(face_a, (128, 128), interpolation=cv2.INTER_AREA)
-	b = cv2.resize(face_b, (128, 128), interpolation=cv2.INTER_AREA)
-	h1 = cv2.calcHist([a], [0], None, [64], [0, 256])
-	h2 = cv2.calcHist([b], [0], None, [64], [0, 256])
-	cv2.normalize(h1, h1)
-	cv2.normalize(h2, h2)
-	return float(cv2.compareHist(h1, h2, cv2.HISTCMP_CORREL))
+def _face_hash_from_face(face: np.ndarray) -> str:
+	"""
+	Gera um hash perceptual binário (aHash) de 64 bits para o rosto.
+	"""
+	small = cv2.resize(face, (8, 8), interpolation=cv2.INTER_AREA)
+	mean_val = float(np.mean(small))
+	bits = (small >= mean_val).astype(np.uint8).flatten()
+	return ''.join('1' if bit else '0' for bit in bits)
 
 
-def comparar_rosto_arquivo_referencia(
-	referencia_abs_path: str,
+def _hash_similarity(hash_a: str, hash_b: str) -> float:
+	if not hash_a or not hash_b or len(hash_a) != len(hash_b):
+		return 0.0
+	dist = sum(1 for a, b in zip(hash_a, hash_b) if a != b)
+	return float(1.0 - (dist / len(hash_a)))
+
+
+def gerar_hash_rosto_upload(upload_file: BinaryIO) -> tuple[str | None, str]:
+	upload_file.seek(0)
+	cap = _read_bgr_from_upload(upload_file)
+	if cap is None:
+		return None, 'foto_captura_invalida'
+	face = _face_from_bgr(cap)
+	if face is None:
+		return None, 'sem_rosto_captura'
+	return _face_hash_from_face(face), 'hash_ok'
+
+
+def comparar_rosto_hash_referencia(
+	referencia_hash: str | None,
 	upload_file: BinaryIO,
 	threshold: float | None = None,
 ) -> tuple[bool, float, str]:
 	"""
-	Retorna (bate_com_cadastro, correlação, mensagem_curta).
+	Retorna (bate_com_cadastro, similaridade, mensagem_curta).
 	"""
-	th = threshold if threshold is not None else getattr(settings, 'FACE_MATCH_HIST_THRESHOLD', 0.55)
-	ref = _read_bgr_from_path(referencia_abs_path)
-	if ref is None:
+	th = threshold if threshold is not None else getattr(settings, 'FACE_MATCH_HASH_THRESHOLD', 0.78)
+	if not referencia_hash:
 		return False, 0.0, 'referencia_invalida'
-
-	upload_file.seek(0)
-	cap = _read_bgr_from_upload(upload_file)
-	if cap is None:
-		return False, 0.0, 'foto_captura_invalida'
-
-	f1 = _face_from_bgr(ref)
-	f2 = _face_from_bgr(cap)
-	if f1 is None:
-		return False, 0.0, 'sem_rosto_referencia'
-	if f2 is None:
-		return False, 0.0, 'sem_rosto_captura'
-
-	score = _histogram_correlation(f1, f2)
+	hash_captura, status = gerar_hash_rosto_upload(upload_file)
+	if not hash_captura:
+		return False, 0.0, status
+	score = _hash_similarity(referencia_hash, hash_captura)
 	ok = score >= th
 	msg = 'match' if ok else 'nao_match'
 	return ok, score, msg

@@ -13,12 +13,16 @@ Este repositorio contem:
 
 ```text
 agroSafe/
-|-- agroSafe/
-|   |-- manage.py
-|   |-- agroSafe/          # configuracao principal do Django
-|   `-- appbk/             # app com endpoints da API
-|-- template/              # templates HTML
-|-- agroSafe/static/       # arquivos estaticos (CSS/JS)
+|-- manage.py
+|-- appbk/             # main app with settings, views, models
+|   |-- settings.py
+|   |-- urls.py
+|   |-- views.py
+|   |-- models.py
+|   |-- ...
+|-- template/          # legacy templates (to be removed)
+|-- agroSafe/static/   # static files
+|-- agroSafe/templates/# templates
 |-- requirements.txt
 `-- README.md
 ```
@@ -103,3 +107,7 @@ Criar superusuario:
 ```bash
 python manage.py createsuperuser
 ```
+
+## Documentacao
+
+- [OpenCV](https://docs.opencv.org/) - Visao computacional e processamento de imagens

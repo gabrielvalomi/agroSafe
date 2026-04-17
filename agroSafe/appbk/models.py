@@ -20,7 +20,7 @@ class Granja(models.Model):
 class CadastroVisitantePortaria(models.Model):
     nome = models.CharField(max_length=100)
     documento = models.CharField(max_length=64)
-    foto = models.ImageField(upload_to='portaria/visitantes/%Y/%m/', null=True, blank=True)
+    foto_hash = models.CharField(max_length=64, null=True, blank=True)
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:
