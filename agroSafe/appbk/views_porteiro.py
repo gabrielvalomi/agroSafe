@@ -106,6 +106,8 @@ def foto(request):
 				cadastro=c,
 				nome_informado=nome,
 				documento_informado=documento,
+				motivo_informado=request.POST.get('motivo'),
+    			observacao_informada=request.POST.get('observacao'),
 				fluxo='novo_cadastro',
 				entrada_permitida=True,
 			)
@@ -202,6 +204,8 @@ def revisao(request):
 				cadastro=c,
 				nome_informado=nome,
 				documento_informado=documento,
+				motivo_informado=request.POST.get('motivo'),
+    			observacao_informada =request.POST.get('observacao'),
 				fluxo='reconhecimento_falha_review_ok',
 				reconhecimento_correlacao=request.session.get('porteiro_score'),
 				reconhecimento_automatico_ok=False,

@@ -59,6 +59,8 @@ class RegistroAcessoPortaria(models.Model):
     )
     nome_informado = models.CharField(max_length=100)
     documento_informado = models.CharField(max_length=64)
+    motivo_informado = models.CharField(max_length=255)
+    observacao_informada = models.CharField(max_length=255)
     fluxo = models.CharField(max_length=40)
     reconhecimento_correlacao = models.FloatField(null=True, blank=True)
     reconhecimento_automatico_ok = models.BooleanField(null=True, blank=True)
