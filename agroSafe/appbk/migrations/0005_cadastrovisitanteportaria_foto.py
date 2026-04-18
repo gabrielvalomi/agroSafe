@@ -10,7 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
+        # 0003 já cria a coluna `foto`; aqui só a tornamos opcional (evita duplicate column).
+        migrations.AlterField(
             model_name='cadastrovisitanteportaria',
             name='foto',
             field=models.ImageField(blank=True, null=True, upload_to='portaria/visitantes/%Y/%m/'),

@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
 from .face_opencv import comparar_rosto_hash_referencia, gerar_hash_rosto_upload
-from .models import CadastroVisitantePortaria, RegistroAcessoPortaria
+from .models import CadastroVisitantePortaria, NivelVisitante, RegistroAcessoPortaria
 
 from django.utils import timezone
 
@@ -35,12 +35,18 @@ def inicio(request):
 		nome = _norm_nome(request.POST.get('nome'))
 		documento = _norm_doc(request.POST.get('documento'))
 		empresa = _norm_doc(request.POST.get('empresa'))
-		nivel = request.POST.get('nivel')
+		nivel = (request.POST.get('nivel') or '').strip()
 		if not nome or not documento or not empresa or not nivel:
 			return render(
 				request,
 				'main/porteiro/inicio.html',
 				{'erro': 'Todos os campos são obrigatórios.'},
+			)
+		if nivel not in NivelVisitante.values:
+			return render(
+				request,
+				'main/porteiro/inicio.html',
+				{'erro': 'Nível inválido.'},
 			)
 		exists = CadastroVisitantePortaria.objects.filter(nome=nome, documento=documento).first()
 		request.session['porteiro_nome'] = nome
@@ -62,7 +68,11 @@ def foto(request):
 	modo = request.session.get('porteiro_modo')
 	nome = request.session.get('porteiro_nome')
 	documento = request.session.get('porteiro_documento')
+	empresa = request.session.get('porteiro_empresa')
+	nivel = request.session.get('porteiro_nivel')
 	if not modo or not nome or not documento:
+		return redirect('porteiro_inicio')
+	if modo == 'cadastro_novo' and (not empresa or not nivel or nivel not in NivelVisitante.values):
 		return redirect('porteiro_inicio')
 	if request.method == 'POST':
 		f = request.FILES.get('foto')
@@ -106,8 +116,8 @@ def foto(request):
 				cadastro=c,
 				nome_informado=nome,
 				documento_informado=documento,
-				motivo_informado=request.POST.get('motivo'),
-    			observacao_informada=request.POST.get('observacao'),
+				motivo_informado=request.POST.get('motivo') or '',
+				observacao_informada=request.POST.get('observacao') or '',
 				fluxo='novo_cadastro',
 				entrada_permitida=True,
 			)
@@ -204,8 +214,8 @@ def revisao(request):
 				cadastro=c,
 				nome_informado=nome,
 				documento_informado=documento,
-				motivo_informado=request.POST.get('motivo'),
-    			observacao_informada =request.POST.get('observacao'),
+				motivo_informado=request.POST.get('motivo') or '',
+				observacao_informada=request.POST.get('observacao') or '',
 				fluxo='reconhecimento_falha_review_ok',
 				reconhecimento_correlacao=request.session.get('porteiro_score'),
 				reconhecimento_automatico_ok=False,
